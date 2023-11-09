@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, toRefs, ref } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { IUser } from '../../../types'
 import UserItem from './UserItem/UserItem.vue'
 import LoaderComponent from '../../shared/Loader/LoaderComponent.vue'
-
-const { filterValue } = defineProps<{
+import glassIcon from '../../../assets/img/icons/glass.svg'
+const props = defineProps<{
   filterValue: string
 }>()
+
+const { filterValue } = toRefs(props)
 
 interface IResults {
   results: Omit<IUser, 'id'>[]
@@ -17,9 +19,10 @@ const fakeDataUrl = `https://randomuser.me/api/?results=3&inc=name,gender,email,
 const initLoading = ref<boolean>(true)
 const activeChatId = ref<string>('')
 const list = ref<IUser[] | never>([])
-const filteredList = computed(() =>
-  list.value.filter(el => el.name.first.includes('')),
-)
+const filteredList = computed(() => {
+  console.log('filteredList is recalculated')
+  return list.value.filter(el => el.name.first.includes(filterValue.value))
+})
 onMounted(() => {
   fetch(fakeDataUrl)
     .then(res => res.json())
@@ -32,6 +35,7 @@ onMounted(() => {
 
 <template>
   <div class="user-list" v-if="!initLoading">
+    <!-- <p>{{ filteredList }}</p> -->
     <UserItem
       v-for="user of filteredList"
       :user="user"
